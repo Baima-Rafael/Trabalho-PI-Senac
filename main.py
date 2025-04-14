@@ -1,4 +1,5 @@
-import licensePlate, sys, mysql.connector
+import sys, mysql.connector
+from licensePlate.src.app import LicensePlateThread
 from contador_vagas.contadorVagas import ContadorVagasThread
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, QLabel, QFileDialog, QDialog, QHeaderView, QTableWidgetItem
@@ -24,7 +25,7 @@ def placa_db(placa, data, hora):
                 # Insere o id_placa, data e hora na tabelahistorico
             cursor.execute(" INSERT INTO tabelahistorico (placa_id, data, hora) VALUES (%s, %s, %s) """, (id_placa, data, hora))
             conn.commit()
-            print(f"Placa {placa} registrada com id_placa {id_placa} na tabelahistorico.")
+            #print(f"Placa {placa} registrada com id_placa {id_placa} na tabelahistorico.")
         else:
             print(f"Placa {placa} não encontrada na tabelaplaca.")
         cursor.close()
@@ -59,14 +60,17 @@ class janelaADM(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi("telaADM.ui", self)
+
+
         self.thread_contador = ContadorVagasThread()
         self.thread_contador.status_vagas_signal.connect(self.atualizar_estilos)
         self.thread_contador.start()
 
-        self.thread_license_plate = licensePlate.LicensePlateThread()
+        print("Iniciando LicensePlateThread...")
+        self.thread_license_plate = LicensePlateThread()
         self.thread_license_plate.plate_detected_signal.connect(self.on_plate_detected)
         self.thread_license_plate.start()
-        self.thread_contador.start()
+
         action_registrar = QAction("Registrar", self)
         action_registrar.triggered.connect(self.funcao_registrar)
         self.menuMenu.addSeparator()
@@ -93,7 +97,7 @@ class janelaADM(QMainWindow):
         self.janela_perfil.show()
         self.close()
     def atualizar_estilos(self, status_vagas):
-        print(status_vagas)
+        # print(status_vagas)
         for vaga, estado in status_vagas.items():
             frame = getattr(self, vaga, None)
             if frame:
@@ -106,6 +110,10 @@ class janelaADM(QMainWindow):
         self.janela_registro = janelaRegistro()
         self.janela_registro.show()
         self.close()
+    def on_plate_detected(self, plate_data):
+        # Quando uma placa é detectada, chama placa_db
+        print("Está funcionando")
+        placa_db(plate_data['placa'], plate_data['data'], plate_data['hora'])
 
 class janelaPesquisa(QMainWindow):
     def __init__(self):
