@@ -1,4 +1,5 @@
 import sys, mysql.connector
+from datetime import datetime
 from licensePlate.src.app import LicensePlateThread
 from contador_vagas.contadorVagas import ContadorVagasThread
 from PyQt5 import uic, QtWidgets
@@ -52,7 +53,7 @@ class janelaInicial(QMainWindow):
             self.janela_adm.show()
             self.close()
         else:
-            QtWidgets.QMensagemBox.warning(self,"Erro", "Usuário ou Senha errado")
+            QtWidgets.QMessageBox.warning(self,"Erro", "Usuário ou Senha errado")
 
 class janelaADM(QMainWindow):
     status_vagas_signal = pyqtSignal(dict)
@@ -133,15 +134,23 @@ class janelaPesquisa(QMainWindow):
         self.setGeometry(100, 100, 1275, 879)
 
     def pesquisar(self):
-        nome = self.lineEdit.text()
+        placa = self.lineEdit.text()
 
         conn = conectar_db()
         cursor = conn.cursor()
-        cursor.execute("SELECT u.id_usuario, u.nome, f.link_foto, p.placa FROM tabelausuario u LEFT JOIN tabelafoto f ON u.id_usuario = f.usuario_id LEFT JOIN tabelaplaca p ON u.id_usuario = p.usuario_id WHERE u.nome = %s;", (nome,))
+        cursor.execute("SELECT t.placa, u.nome, h.data, h.hora FROM tabelahistorico h INNER JOIN tabelaplaca t ON h.placa_id = t.id_placa INNER JOIN tabelausuario u ON t.usuario_id = u.id_usuario WHERE t.id_placa = %s;", (placa,))
         resultado = cursor.fetchall()
         self.listWidget.clear()
-        for id_usuario, nome, link_foto, placa in resultado:
-            item_text = f"ID: {id_usuario} | Nome: {nome} | Foto: {link_foto or 'Nenhuma'} | Placa: {placa or 'Nenhuma'}"
+        for placa, nome, data, hora in resultado:
+            # Formata data e hora no formato "dia/mês/ano às horário"
+            data_str = data.strftime('%d/%m/%Y')
+            total_seconds = int(hora.total_seconds())
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            seconds = total_seconds % 60
+            hora_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+            acesso = f"{data_str} às {hora_str}"
+            item_text = f"Placa: {placa} | Usuário: {nome} | Acesso: {acesso}"
             self.listWidget.addItem(item_text)
         cursor.close()
         conn.close()
