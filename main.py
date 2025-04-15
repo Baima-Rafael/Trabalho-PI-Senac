@@ -22,10 +22,9 @@ def placa_db(placa, data, hora):
         result = cursor.fetchone()
         if result:
             id_placa = result[0]  # Obtém o id_placa
-                # Insere o id_placa, data e hora na tabelahistorico
-            cursor.execute(" INSERT INTO tabelahistorico (placa_id, data, hora) VALUES (%s, %s, %s) """, (id_placa, data, hora))
+            # Insere o id_placa, data e hora na tabelahistorico
+            cursor.execute("INSERT INTO tabelahistorico (placa_id, data, hora) VALUES (%s, %s, %s) """, (id_placa, data, hora))
             conn.commit()
-            #print(f"Placa {placa} registrada com id_placa {id_placa} na tabelahistorico.")
         else:
             print(f"Placa {placa} não encontrada na tabelaplaca.")
         cursor.close()
@@ -48,7 +47,7 @@ class janelaInicial(QMainWindow):
         cursor.execute("SELECT * FROM tabelaadm WHERE nome = %s AND senha = %s", (nome, senha))
         resultado = cursor.fetchone()
         conn.close
-        if True:
+        if resultado:
             self.janela_adm = janelaADM()
             self.janela_adm.show()
             self.close()
@@ -66,7 +65,6 @@ class janelaADM(QMainWindow):
         self.thread_contador.status_vagas_signal.connect(self.atualizar_estilos)
         self.thread_contador.start()
 
-        print("Iniciando LicensePlateThread...")
         self.thread_license_plate = LicensePlateThread()
         self.thread_license_plate.plate_detected_signal.connect(self.on_plate_detected)
         self.thread_license_plate.start()
@@ -112,7 +110,6 @@ class janelaADM(QMainWindow):
         self.close()
     def on_plate_detected(self, plate_data):
         # Quando uma placa é detectada, chama placa_db
-        print("Está funcionando")
         placa_db(plate_data['placa'], plate_data['data'], plate_data['hora'])
 
 class janelaPesquisa(QMainWindow):
@@ -194,7 +191,7 @@ class janelaHistorico(QMainWindow):
         resultado = cursor.fetchall()
         self.tableWidget.setRowCount(len(resultado))
         self.tableWidget.setColumnCount(3)
-        self.tableWidget.setHorizontalHeaderLabels(["Placa", "Data", "Hora",])
+        self.tableWidget.setHorizontalHeaderLabels(["Id da Placa", "Data", "Hora",])
         self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         for row_idx, row_data in enumerate(resultado):
             for col_idx, col_data in enumerate(row_data):

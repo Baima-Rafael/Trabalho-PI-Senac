@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1:3306
--- Tempo de geração: 24/03/2025 às 20:17
--- Versão do servidor: 9.1.0
--- Versão do PHP: 8.3.14
+-- Host: 127.0.0.1
+-- Tempo de geração: 15/04/2025 às 04:57
+-- Versão do servidor: 10.4.32-MariaDB
+-- Versão do PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -27,13 +27,11 @@ SET time_zone = "+00:00";
 -- Estrutura para tabela `tabelaadm`
 --
 
-DROP TABLE IF EXISTS `tabelaadm`;
-CREATE TABLE IF NOT EXISTS `tabelaadm` (
-  `id_adm` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(80) COLLATE utf8mb4_general_ci NOT NULL,
-  `senha` varchar(80) COLLATE utf8mb4_general_ci NOT NULL,
-  PRIMARY KEY (`id_adm`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE `tabelaadm` (
+  `id_adm` int(11) NOT NULL,
+  `nome` varchar(80) NOT NULL,
+  `senha` varchar(80) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Despejando dados para a tabela `tabelaadm`
@@ -46,72 +44,173 @@ INSERT INTO `tabelaadm` (`id_adm`, `nome`, `senha`) VALUES
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `tabela foto`
+-- Estrutura para tabela `tabelafoto`
 --
 
-DROP TABLE IF EXISTS `tabela foto`;
-CREATE TABLE IF NOT EXISTS `tabela foto` (
-  `id_foto` int NOT NULL AUTO_INCREMENT,
-  `link_foto` varchar(1000) COLLATE utf8mb4_general_ci NOT NULL,
-  `usuario_id` int NOT NULL,
-  PRIMARY KEY (`id_foto`),
-  KEY `pk_usuario2` (`usuario_id`)
+CREATE TABLE `tabelafoto` (
+  `id_foto` int(11) NOT NULL,
+  `link_foto` varchar(1000) NOT NULL,
+  `usuario_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `tabelafoto`
+--
+
+INSERT INTO `tabelafoto` (`id_foto`, `link_foto`, `usuario_id`) VALUES
+(1, 'LINK', 1);
 
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `tabela placa`
+-- Estrutura para tabela `tabelahistorico`
 --
 
-DROP TABLE IF EXISTS `tabela placa`;
-CREATE TABLE IF NOT EXISTS `tabela placa` (
-  `id_placa` int NOT NULL AUTO_INCREMENT,
-  `placa` varchar(7) COLLATE utf8mb4_general_ci NOT NULL,
-  `usuario_id` int NOT NULL,
-  PRIMARY KEY (`id_placa`),
-  KEY `pk_usuario` (`usuario_id`)
+CREATE TABLE `tabelahistorico` (
+  `id_historico` int(11) NOT NULL,
+  `placa_id` int(11) NOT NULL,
+  `data` date NOT NULL,
+  `hora` time NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `tabelahistorico`
+--
+
+INSERT INTO `tabelahistorico` (`id_historico`, `placa_id`, `data`, `hora`) VALUES
+(1, 1, '2025-04-14', '00:00:00'),
+(2, 1, '2025-04-14', '23:13:45'),
+(3, 1, '2025-04-14', '23:56:23');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `tabela usuario`
+-- Estrutura para tabela `tabelaplaca`
 --
 
-DROP TABLE IF EXISTS `tabela usuario`;
-CREATE TABLE IF NOT EXISTS `tabela usuario` (
-  `id_usuario` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(80) COLLATE utf8mb4_general_ci NOT NULL,
-  `placa_id` int NOT NULL,
-  `foto_id` int NOT NULL,
-  PRIMARY KEY (`id_usuario`),
-  KEY `pk_placa` (`placa_id`),
-  KEY `pk_foto` (`foto_id`)
+CREATE TABLE `tabelaplaca` (
+  `id_placa` int(11) NOT NULL,
+  `placa` varchar(7) NOT NULL,
+  `usuario_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `tabelaplaca`
+--
+
+INSERT INTO `tabelaplaca` (`id_placa`, `placa`, `usuario_id`) VALUES
+(1, 'NEXTLVL', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para tabela `tabelausuario`
+--
+
+CREATE TABLE `tabelausuario` (
+  `id_usuario` int(11) NOT NULL,
+  `nome` varchar(80) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `tabelausuario`
+--
+
+INSERT INTO `tabelausuario` (`id_usuario`, `nome`) VALUES
+(1, 'Rafael');
+
+--
+-- Índices para tabelas despejadas
+--
+
+--
+-- Índices de tabela `tabelaadm`
+--
+ALTER TABLE `tabelaadm`
+  ADD PRIMARY KEY (`id_adm`);
+
+--
+-- Índices de tabela `tabelafoto`
+--
+ALTER TABLE `tabelafoto`
+  ADD PRIMARY KEY (`id_foto`),
+  ADD KEY `pk_usuario2` (`usuario_id`);
+
+--
+-- Índices de tabela `tabelahistorico`
+--
+ALTER TABLE `tabelahistorico`
+  ADD PRIMARY KEY (`id_historico`),
+  ADD KEY `pk_placa` (`placa_id`);
+
+--
+-- Índices de tabela `tabelaplaca`
+--
+ALTER TABLE `tabelaplaca`
+  ADD PRIMARY KEY (`id_placa`),
+  ADD KEY `pk_usuario` (`usuario_id`);
+
+--
+-- Índices de tabela `tabelausuario`
+--
+ALTER TABLE `tabelausuario`
+  ADD PRIMARY KEY (`id_usuario`);
+
+--
+-- AUTO_INCREMENT para tabelas despejadas
+--
+
+--
+-- AUTO_INCREMENT de tabela `tabelaadm`
+--
+ALTER TABLE `tabelaadm`
+  MODIFY `id_adm` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de tabela `tabelafoto`
+--
+ALTER TABLE `tabelafoto`
+  MODIFY `id_foto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT de tabela `tabelahistorico`
+--
+ALTER TABLE `tabelahistorico`
+  MODIFY `id_historico` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de tabela `tabelaplaca`
+--
+ALTER TABLE `tabelaplaca`
+  MODIFY `id_placa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT de tabela `tabelausuario`
+--
+ALTER TABLE `tabelausuario`
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Restrições para tabelas despejadas
 --
 
 --
--- Restrições para tabelas `tabela foto`
+-- Restrições para tabelas `tabelafoto`
 --
-ALTER TABLE `tabela foto`
-  ADD CONSTRAINT `pk_usuario2` FOREIGN KEY (`usuario_id`) REFERENCES `tabela usuario` (`id_usuario`) ON DELETE CASCADE ON UPDATE RESTRICT;
+ALTER TABLE `tabelafoto`
+  ADD CONSTRAINT `pk_usuario2` FOREIGN KEY (`usuario_id`) REFERENCES `tabelausuario` (`id_usuario`) ON DELETE CASCADE;
 
 --
--- Restrições para tabelas `tabela placa`
+-- Restrições para tabelas `tabelahistorico`
 --
-ALTER TABLE `tabela placa`
-  ADD CONSTRAINT `pk_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `tabela usuario` (`id_usuario`) ON DELETE CASCADE ON UPDATE RESTRICT;
+ALTER TABLE `tabelahistorico`
+  ADD CONSTRAINT `pk_placa` FOREIGN KEY (`placa_id`) REFERENCES `tabelaplaca` (`id_placa`) ON UPDATE CASCADE;
 
 --
--- Restrições para tabelas `tabela usuario`
+-- Restrições para tabelas `tabelaplaca`
 --
-ALTER TABLE `tabela usuario`
-  ADD CONSTRAINT `pk_foto` FOREIGN KEY (`foto_id`) REFERENCES `tabela foto` (`id_foto`) ON DELETE CASCADE ON UPDATE RESTRICT,
-  ADD CONSTRAINT `pk_placa` FOREIGN KEY (`placa_id`) REFERENCES `tabela placa` (`id_placa`) ON DELETE CASCADE ON UPDATE RESTRICT;
+ALTER TABLE `tabelaplaca`
+  ADD CONSTRAINT `pk_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `tabelausuario` (`id_usuario`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
