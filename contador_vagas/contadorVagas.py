@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 from PyQt5.QtCore import QThread, pyqtSignal
 
+# Dicionário com coordenadas das vagas (nome: [x, y, w, h])
+# Para adicionar as próprias vagas, utilize o "seletorVaga.py", ele irá retornar um txt chamado roi
 vagas = {
     "vagas1" : [108,236,90,34],
     "vagas2" : [224,232,128,36],
@@ -11,10 +13,12 @@ vagas = {
 
 
 class ContadorVagasThread(QThread):
+    # Thread para monitoramento do status das vagas de estacionamento.
     status_vagas_signal = pyqtSignal(dict)
     
 
     def run(self):
+        # Executa o loop de captura e análise de vagas.
         video = cv2.VideoCapture(1)
 
         while True:

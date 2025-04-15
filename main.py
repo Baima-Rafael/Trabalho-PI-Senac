@@ -1,5 +1,4 @@
 import sys, mysql.connector
-from datetime import datetime
 from licensePlate.src.app import LicensePlateThread
 from contador_vagas.contadorVagas import ContadorVagasThread
 from PyQt5 import uic, QtWidgets
@@ -8,6 +7,14 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import pyqtSignal, Qt
 
 def conectar_db():
+    # Conecta ao banco de dados MySQL.
+
+    # Returns:
+    #     mysql.connector.connection.MySQLConnection: Conexão ativa com o banco de dados.
+
+    # Raises:
+    #     mysql.connector.Error: Se a conexão falhar devido a credenciais inválidas ou servidor inacessível.
+    # 
     return mysql.connector.connect(
         host="localhost",
         user="root",
@@ -16,6 +23,16 @@ def conectar_db():
     )
 
 def placa_db(placa, data, hora):
+    # Insere informações de uma placa detectada na tabela de histórico.
+
+    # Args:
+    #     placa (str): Número da placa detectada.
+    #     data (str): Data no formato 'YYYY-MM-DD'.
+    #     hora (str): Hora no formato 'HH:MM:SS'.
+
+    # Raises:
+    #     mysql.connector.Error: Se houver falha na consulta ou inserção no banco.
+    # 
     try:
         conn = conectar_db()
         cursor = conn.cursor()
@@ -34,12 +51,14 @@ def placa_db(placa, data, hora):
         print(f"Erro ao inserir na tabelahistorico: {e}")
 
 class janelaInicial(QMainWindow):
+    # Janela inicial para autenticação de administradores.
     def __init__(self):
         super().__init__()
-        uic.loadUi("paginaInicial.ui", self)
-        self.pushButton.clicked.connect(self.Entrar)
+        uic.loadUi("paginaInicial.ui", self) # Carrega interface gráfica
+        self.pushButton.clicked.connect(self.Entrar) # Conecta botão à função Entrar
 
     def Entrar(self):
+        # Valida credenciais e abre a janela administrativa.
         nome = self.lineEdit.text()
         senha = self.lineEdit_2.text()
 
@@ -56,25 +75,29 @@ class janelaInicial(QMainWindow):
             QtWidgets.QMessageBox.warning(self,"Erro", "Usuário ou Senha errado")
 
 class janelaADM(QMainWindow):
+    # Janela principal para administração do sistema.
     status_vagas_signal = pyqtSignal(dict)
     def __init__(self):
         super().__init__()
         uic.loadUi("telaADM.ui", self)
 
-
+        # Inicializa thread para monitoramento de vagas
         self.thread_contador = ContadorVagasThread()
         self.thread_contador.status_vagas_signal.connect(self.atualizar_estilos)
         self.thread_contador.start()
 
+        # Inicializa thread para leitura de placas
         self.thread_license_plate = LicensePlateThread()
         self.thread_license_plate.plate_detected_signal.connect(self.on_plate_detected)
         self.thread_license_plate.start()
 
+        # Configura menu de registro
         action_registrar = QAction("Registrar", self)
         action_registrar.triggered.connect(self.funcao_registrar)
         self.menuMenu.addSeparator()
         self.menuMenu.addAction(action_registrar)
 
+        # Conecta ações do menu
         self.actionInicio.triggered.connect(self.Inicio)
         self.actionPesquisar.triggered.connect(self.Pesquisa)
         self.actionHistorico.triggered.connect(self.Historico)
@@ -96,7 +119,10 @@ class janelaADM(QMainWindow):
         self.janela_perfil.show()
         self.close()
     def atualizar_estilos(self, status_vagas):
-        # print(status_vagas)
+        # Atualiza a interface com base no status das vagas.
+
+        # Args:
+        #     status_vagas (dict): Dicionário com nome da vaga e status ('ocupado' ou 'livre').
         for vaga, estado in status_vagas.items():
             frame = getattr(self, vaga, None)
             if frame:
@@ -104,13 +130,17 @@ class janelaADM(QMainWindow):
                     frame.setStyleSheet("QFrame { background-color: #c34a4d; }")
                 else:
                     frame.setStyleSheet("QFrame { background-color: #47c25c; }")
-    # ------
+
     def funcao_registrar(self):
+        # Abre a janela de registro.
         self.janela_registro = janelaRegistro()
         self.janela_registro.show()
         self.close()
     def on_plate_detected(self, plate_data):
-        # Quando uma placa é detectada, chama placa_db
+        # Processa dados de placas detectadas.
+
+        # Args:
+        #     plate_data (dict): Contém 'placa', 'data' e 'hora'.
         placa_db(plate_data['placa'], plate_data['data'], plate_data['hora'])
 
 class janelaPesquisa(QMainWindow):
@@ -521,17 +551,14 @@ class janelaRegistro(QMainWindow):
         self.lineEdit_2.clear()  # Limpa o campo da placa
         self.image_path = None  # Remove a referência da imagem
         self.label_imagem.clear()  # Limpa a QLabel onde a imagem foi carregada
-    # def Configuracoes(self):
-    #     self.janela_perfil = janelaPerfil()
-    #     self.janela_perfil.show()
-    #     self.close()
-    # -----------
+
     def funcao_registrar(self):
         self.janela_registro = janelaRegistro() 
         self.janela_registro.show()
         self.close()
 
 if __name__ == "__main__":
+    # Ponto de entrada do programa.
     app = QApplication(sys.argv)
     janela = janelaInicial()
     janela.show()

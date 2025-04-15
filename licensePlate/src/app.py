@@ -1,11 +1,20 @@
-import cv2, os, mysql.connector, easyocr, re, time
+import cv2, os, mysql.connector, easyocr, re, time, glob
 from datetime import datetime
 from PyQt5.QtCore import QThread, pyqtSignal
 import numpy as np
 
+image_count = 0
 
 # Função para obter placas autorizadas do banco de dados
 def get_authorized_plates():
+    # Recupera placas autorizadas do banco de dados.
+
+    # Returns:
+    #     list: Lista de placas autorizadas (strings).
+
+    # Raises:
+    #     mysql.connector.Error: Se a conexão com o banco falhar.
+
     conn = mysql.connector.connect(
         host='localhost',
         user='root',
@@ -21,6 +30,13 @@ def get_authorized_plates():
 
 # Função para pré-processamento da imagem
 def preprocess_image(image):
+    # Pré-processa a imagem para melhorar a detecção de placas.
+
+    # Args:
+    #     image (np.ndarray): Imagem em formato BGR.
+
+    # Returns:
+    #     np.ndarray: Imagem pré-processada (binarizada) ou None em caso de erro.
     try:
         # Converte para escala de cinza
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -45,6 +61,14 @@ def preprocess_image(image):
 
 # Função para detectar a região da placa
 def detect_plate_region(image):
+    # Detecta a região da placa na imagem binarizada.
+
+    # Args:
+    #     image (np.ndarray): Imagem binarizada.
+
+    # Returns:
+    #     tuple: Coordenadas (x, y, w, h) da região da placa ou None se não encontrada.
+    
     if image is None:
         return None
     try:
@@ -65,6 +89,19 @@ def detect_plate_region(image):
     
 # Função para escanear a placa usando EasyOCR
 def scan_plate(image, reader, debug_dir="debug_plates"):
+    # Escaneia a placa na imagem usando EasyOCR.
+
+    # Args:
+    #     image (np.ndarray): Imagem em formato BGR.
+    #     reader (easyocr.Reader): Instância do EasyOCR.
+    #     debug_dir (str): Diretório para salvar imagens de depuração.
+
+    # Returns:
+    #     tuple: (plate_number, plate_region), onde plate_number é a placa detectada (str)
+    #            e plate_region é a região (x, y, w, h) ou None.
+
+    # Notes:
+    #     Após 10 imagens, a pasta debug_dir é limpa para economizar espaço.
     try:
         # Pré-processamento
         processed = preprocess_image(image)
@@ -88,7 +125,18 @@ def scan_plate(image, reader, debug_dir="debug_plates"):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         debug_path = os.path.join(debug_dir, f"plate_{timestamp}.png")
         cv2.imwrite(debug_path, plate_image_gray)
+        image_count += 1
 
+        if image_count >= 10:
+            try:
+                # Remove todas as imagens na pasta debug_plates
+                for file in glob.glob(os.path.join(debug_dir, "*.png")):
+                    os.remove(file)
+                print(f"Pasta {debug_dir} limpa.")
+                # Reseta o contador
+                image_count = 0
+            except Exception as e:
+                print(f"Erro ao limpar pasta {debug_dir}: {e}")
         # Usa EasyOCR para ler o texto
         results = reader.readtext(plate_image_gray, allowlist='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 
@@ -112,6 +160,14 @@ def scan_plate(image, reader, debug_dir="debug_plates"):
 
 # Função para validar o formato da placa
 def is_valid_plate(plate_number):
+    # Valida o formato da placa (padrão Mercosul).
+
+    # Args:
+    #     plate_number (str): Texto da placa detectada.
+
+    # Returns:
+    #     bool: True se a placa for válida, False caso contrário.
+
     # Padrão brasileiro antigo: LLLNNNN (3 letras + 4 números)
     # Padrão Mercosul: LLLNLNN (3 letras + 1 número + 1 letra + 2 números)
     pattern = r'^[A-Z]{7}$|^[A-Z]{3}[0-9][A-Z][0-9]{2}$' #[0-9]{4} ficava colada no [A-Z]{7}
@@ -119,6 +175,14 @@ def is_valid_plate(plate_number):
 
 # Função para validar se a placa está autorizada
 def validate_plate(plate_number, authorized_plate):
+    # Verifica se a placa está autorizada.
+
+    # Args:
+    #     plate_number (str): Placa detectada.
+    #     authorized_plate (list): Lista de placas autorizadas.
+
+    # Returns:
+    #     str: 'AUTHORIZED' se autorizada, 'NOT AUTHORIZED' caso contrário.
     if plate_number in authorized_plate:
         print(plate_number)
         return 'AUTHORIZED'
@@ -126,15 +190,17 @@ def validate_plate(plate_number, authorized_plate):
 
 # Classe para a thread de leitura de placas
 class LicensePlateThread(QThread):
+    # Thread para leitura contínua de placas via câmera.
     plate_detected_signal = pyqtSignal(dict)  # Sinal para emitir dados da placa detectada
 
     def __init__(self):
         super().__init__()
         self.running = True
         # Inicializa o EasyOCR (inglês para números e letras)
-        self.reader = easyocr.Reader(['en'], gpu=False)  # Use gpu=True se tiver GPU
+        self.reader = easyocr.Reader(['en'], gpu=False)  # Inicializa EasyOCR / # Use gpu=True se tiver GPU
 
     def run(self):
+        # Executa o loop de captura e processamento de placas.
         # Inicializa a câmera
         cap = cv2.VideoCapture(0)
         if not cap.isOpened():
