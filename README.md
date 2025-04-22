@@ -1294,4 +1294,4 @@ Abaixo estão os problemas mais frequentes encontrados ao usar o sistema, com su
 - **Stack Overflow**: [https://stackoverflow.com/](https://stackoverflow.com/)  
   Comunidade para suporte técnico em Python, PyQt5, OpenCV e MySQL.
 
-[Repositório Github](https://github.com/Baima-Rafael/Trabalho-Senac-Provavelmente-Final/tree/main)
+[Repositório Github]([https://github.com/Baima-Rafael/Trabalho-Senac-Provavelmente-Final/tree/main](https://github.com/Baima-Rafael/Trabalho-PI-Senac))
