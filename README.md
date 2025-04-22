@@ -1,4 +1,4 @@
-# {Nome do Projeto}
+# PlateCore
 
 Esse sistema visa solucionar problemas com autenticação de placas e gerenciamento de vagas de estacionamento, assim, reduzindo o tempo que leva para estacionar
 
